@@ -16,9 +16,9 @@ class JWTTester(unittest.TestCase):
         self.validator = JWTValidator(self.url, self.audience, self.period)
         self.testToken = {"email": "user@domain.net", "given_name": "Some", "family_name": "One",
                           "name": "Some One", "iss": "https://cilogon.org", "aud": "cilogon:foo",
-                          "sub": "http://cilogon.org/serverT/users/241998",
+                          "sub": "https://cilogon.org/serverT/users/241998",
                           "token_id": "https://cilogon.org/oauth2/idToken/1234567898",
-                          "auth_time": "1607382404", "exp": 1607383305, "iat": 1607382405, "roles": [
+                          "auth_time": "1607382404", "iat": 1607382405, "roles": [
                             "CO:members:all",
                             "CO:members:active",
                             "CO:admins",
