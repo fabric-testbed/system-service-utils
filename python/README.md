@@ -16,5 +16,10 @@ from python/ folder
 
 As a dependency use PyPi
 ```bash
-$ pip install fss-utils
+$ pip install fabric-fss-utils
+$  python
+>>> from fss_utils.jwt_validate import JWTValidator, ValidateCode
+>>> token = "..."
+>>> validator = JWTValidator(cert_end_point, audience, datetime.timedelta(minutes=5))
+>>> validator.validate_jwt(token)
 ```
