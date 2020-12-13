@@ -2,7 +2,7 @@ import requests
 import jwt
 import json
 import enum
-
+import datetime
 
 @enum.unique
 class ValidateCode(enum.Enum):
@@ -31,66 +31,81 @@ class ValidateCode(enum.Enum):
         else:
             return str(exception) + ". " + interpretations[self.value]
 
+class JWTValidator:
+    """This class caches keys retrieved from a specified endpoint
+    and uses them to validate provided JWTs"""
 
-def fetch_pub_keys(url):
-    """
-    Fetch JWKs from an endpoint, return a dictionary of key ids vs public key values (RSA)
-    Returns a tuple ValidateCode, public key dict. Code is None in case of success,
-    dict is none in case of failure.
-    :param url:
-    :return ValidateCode or None, None or exception or dict of keys:
-    """
-    r = requests.get(url)
-    if r.status_code != 200:
-        return ValidateCode.UNABLE_TO_FETCH_KEYS, None
+    def __init__(self, url, audience, refreshPeriod):
+        """ Initialize a validator with an endpoint URL, audience
+        (i.e. CI Logon client id cilogon:/client_id/1234567890) and
+        a refresh period for keys expressed as datetime.timedelta"""
+        self.url = url
+        self.aud = audience
+        assert isinstance(refreshPeriod, datetime.timedelta)
+        self.cachePeriod = refreshPeriod
+        self.pubKeys = None
 
-    try:
-        pub_keys = dict()
-        jwks = json.loads(r.text)
-        for jwk in jwks['keys']:
-            kid = jwk['kid']
-            pub_keys[kid] = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(jwk))
-        return None, pub_keys
-    except Exception as e:
-        return ValidateCode.UNABLE_TO_DECODE_KEYS, e
+    def fetch_pub_keys(self):
+        """
+        Fetch JWKs from an endpoint, return a dictionary of key ids vs public key values (RSA)
+        Returns a tuple ValidateCode, public key dict. Code is None in case of success,
+        dict is none in case of failure.
+        :return ValidateCode or None, exception or None:
+        """
+        if self.pubKeys is not None:
+            if datetime.datetime.now() < self.keysFetched + self.cachePeriod:
+                return None, None
 
+        r = requests.get(self.url)
+        if r.status_code != 200:
+            return ValidateCode.UNABLE_TO_FETCH_KEYS, None
 
-def validate_jwt(token, endpoint, audience):
-    """
-    Validate a token using a JWKs object retrieved from an endpoint.
-    Returns a tuple ValidateCode code, exception object if it occurred (or None).
-    Requires the token, the endpoint URL and the audience, i.e. CI Logon client ID
-    cilogon:/client_id/1234567890
-    :param token:
-    :param endpoint:
-    :param audience:
-    :return tuple ValdateCode, Exception:
-    """
-    code, pub_keys = fetch_pub_keys(endpoint)
-    if pub_keys is None:
-        return code, None
+        self.keysFetched = datetime.datetime.now()
 
-    # get kid from token
-    try:
-        kid = jwt.get_unverified_header(token).get('kid', None)
-        alg = jwt.get_unverified_header(token).get('alg', None)
-    except jwt.DecodeError as e:
-        return ValidateCode.UNPARSABLE_TOKEN, e
+        try:
+            self.pubKeys = dict()
+            jwks = json.loads(r.text)
+            for jwk in jwks['keys']:
+                kid = jwk['kid']
+                self.pubKeys[kid] = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(jwk))
+            return None, None
+        except Exception as e:
+            return ValidateCode.UNABLE_TO_DECODE_KEYS, e
 
-    if kid is None:
-        return ValidateCode.UNSPECIFIED_KEY, None
+    def validate_jwt(self, token):
+        """
+        Validate a token using a JWKs object retrieved from an endpoint.
+        Returns a tuple ValidateCode code, exception object if it occurred (or None).
+        Requires the token, the endpoint URL and the audience, i.e. CI Logon client ID
+        cilogon:/client_id/1234567890
+        :param token:
+        :return tuple ValdateCode, Exception:
+        """
+        r, e = self.fetch_pub_keys()
+        if r is not None:
+            return r, e
 
-    if alg is None:
-        return ValidateCode.UNSPECIFIED_ALG, None
+        # get kid from token
+        try:
+            kid = jwt.get_unverified_header(token).get('kid', None)
+            alg = jwt.get_unverified_header(token).get('alg', None)
+        except jwt.DecodeError as e:
+            return ValidateCode.UNPARSABLE_TOKEN, e
 
-    if kid not in pub_keys.keys():
-        return ValidateCode.UNKNOWN_KEY, None
+        if kid is None:
+            return ValidateCode.UNSPECIFIED_KEY, None
 
-    key = pub_keys[kid]
+        if alg is None:
+            return ValidateCode.UNSPECIFIED_ALG, None
 
-    try:
-        jwt.decode(token, key=key, algorithms=[alg], audience=audience)
-    except Exception as e:
-        return ValidateCode.INVALID, e
+        if kid not in self.pubKeys.keys():
+            return ValidateCode.UNKNOWN_KEY, None
 
-    return ValidateCode.VALID, None
+        key = self.pubKeys[kid]
+
+        try:
+            jwt.decode(token, key=key, algorithms=[alg], audience=self.aud)
+        except Exception as e:
+            return ValidateCode.INVALID, e
+
+        return ValidateCode.VALID, None
