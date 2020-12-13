@@ -28,7 +28,8 @@ class JWTTester(unittest.TestCase):
                             "CO:COU:abf0014e-72f5-44ab-ac63-5ec5a5debbb8-pm:members:all"
                             ],
                           'exp': int(time.time()) + 1000}
-        self.testToken2 = "you need a real token"
+        # YOU NEED A REAL RECENT TOKEN
+        self.testToken2 = "..."
 
     def testFetchKeys(self):
         """ test fetching keys from a real endpoint """
@@ -40,7 +41,7 @@ class JWTTester(unittest.TestCase):
         encoded_token = jwt.encode(self.testToken, key='secret', algorithm='HS256')
         jwt.decode(encoded_token, key='secret', algorithms=['HS256'], audience='cilogon:foo')
 
-    @unittest.skip("Get a real token and a real audience")
+    #@unittest.skip("Get a real token and a real audience")
     def testDecode(self):
         """ this test requires a real token and a real audience (which is CI Logon client ID)"""
         vc, e = self.validator.validate_jwt(self.testToken2)
