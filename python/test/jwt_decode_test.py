@@ -41,7 +41,7 @@ class JWTTester(unittest.TestCase):
         encoded_token = jwt.encode(self.testToken, key='secret', algorithm='HS256')
         jwt.decode(encoded_token, key='secret', algorithms=['HS256'], audience='cilogon:foo')
 
-    #@unittest.skip("Get a real token and a real audience")
+    @unittest.skip("Get a real token and a real audience")
     def testDecode(self):
         """ this test requires a real token and a real audience (which is CI Logon client ID)"""
         vc, e = self.validator.validate_jwt(self.testToken2)
