@@ -3,6 +3,7 @@ import jwt
 import json
 import enum
 
+
 @enum.unique
 class ValidateCode(enum.Enum):
     VALID = 1
@@ -36,7 +37,8 @@ def fetch_pub_keys(url):
     Fetch JWKs from an endpoint, return a dictionary of key ids vs public key values (RSA)
     Returns a tuple ValidateCode, public key dict. Code is None in case of success,
     dict is none in case of failure.
-    :return ValidateCode or None, None or dict of keys:
+    :param url:
+    :return ValidateCode or None, None or exception or dict of keys:
     """
     r = requests.get(url)
     if r.status_code != 200:
@@ -49,14 +51,19 @@ def fetch_pub_keys(url):
             kid = jwk['kid']
             pub_keys[kid] = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(jwk))
         return None, pub_keys
-    except Exception:
-        return ValidateCode.UNABLE_TO_DECODE_KEYS, None
+    except Exception as e:
+        return ValidateCode.UNABLE_TO_DECODE_KEYS, e
 
 
-def validate_jwt(token, endpoint):
+def validate_jwt(token, endpoint, audience):
     """
     Validate a token using a JWKs object retrieved from an endpoint.
-    Returns a ValidateCode code and exception object if it occurred.
+    Returns a tuple ValidateCode code, exception object if it occurred (or None).
+    Requires the token, the endpoint URL and the audience, i.e. CI Logon client ID
+    cilogon:/client_id/1234567890
+    :param token:
+    :param endpoint:
+    :param audience:
     :return tuple ValdateCode, Exception:
     """
     code, pub_keys = fetch_pub_keys(endpoint)
@@ -82,10 +89,8 @@ def validate_jwt(token, endpoint):
     key = pub_keys[kid]
 
     try:
-        jwt.decode(token, key=key, algorithms=[alg])
+        jwt.decode(token, key=key, algorithms=[alg], audience=audience)
     except Exception as e:
         return ValidateCode.INVALID, e
 
     return ValidateCode.VALID, None
-
-
