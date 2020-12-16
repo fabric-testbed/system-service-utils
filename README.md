@@ -1,3 +1,5 @@
+[![Requirements Status](https://requires.io/github/fabric-testbed/system-service-utils/requirements.svg?branch=main)](https://requires.io/github/fabric-testbed/system-service-utils/requirements/?branch=main)
+
 # Overview
 
 This repo contains libraries written in different languages which implement utilities useful for implementing or interacting with FABRIC System Services ([Project Registry](https://github.com/fabric-testbed/project-registry), [User Information Service](https://github.com/fabric-testbed/UserInformationService), [Portal](https://github.com/fabric-testbed/fabric-portal), [Credential Manager](https://github.com/fabric-testbed/CredentialManager) and others).
