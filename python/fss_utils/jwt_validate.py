@@ -20,7 +20,7 @@ class ValidateCode(enum.Enum):
             1: "Token is valid",
             2: "Token does not specify key ID",
             3: "Token does not specify algorithm",
-            4: "Unable to find public key at endpoint",
+            4: "Unable to find public key at JWK endpoint",
             5: "Token signature is invalid",
             6: "Unable to fetch keys from the endpoint",
             7: "Unable to parse token",
@@ -31,19 +31,25 @@ class ValidateCode(enum.Enum):
         else:
             return str(exception) + ". " + interpretations[self.value]
 
+
 class JWTValidator:
     """This class caches keys retrieved from a specified endpoint
     and uses them to validate provided JWTs"""
 
-    def __init__(self, url, audience, refreshPeriod):
-        """ Initialize a validator with an endpoint URL, audience
-        (i.e. CI Logon client id cilogon:/client_id/1234567890) and
-        a refresh period for keys expressed as datetime.timedelta"""
+    def __init__(self, url, refreshPeriod, audience=None):
+        """ Initialize a validator with an endpoint URL presenting JWKs,
+        a refresh period for keys expressed as datetime.timedelta and
+        audience (i.e. CI Logon client id cilogon:/client_id/1234567890).
+        :param url:
+        :param refreshPeriod:
+        :param audience:
+        """
         self.url = url
         self.aud = audience
-        assert isinstance(refreshPeriod, datetime.timedelta)
+        assert refreshPeriod is None or isinstance(refreshPeriod, datetime.timedelta)
         self.cachePeriod = refreshPeriod
         self.pubKeys = None
+        self.keysFetched = None
 
     def fetch_pub_keys(self):
         """
@@ -52,7 +58,7 @@ class JWTValidator:
         dict is none in case of failure.
         :return ValidateCode or None, exception or None:
         """
-        if self.pubKeys is not None:
+        if self.keysFetched is not None:
             if datetime.datetime.now() < self.keysFetched + self.cachePeriod:
                 return None, None
 
@@ -72,13 +78,16 @@ class JWTValidator:
         except Exception as e:
             return ValidateCode.UNABLE_TO_DECODE_KEYS, e
 
-    def validate_jwt(self, token):
+    def validate_jwt(self, token, verify_exp=False):
         """
         Validate a token using a JWKs object retrieved from an endpoint.
         Returns a tuple ValidateCode code, exception object if it occurred (or None).
         Requires the token, the endpoint URL and the audience, i.e. CI Logon client ID
         cilogon:/client_id/1234567890
+        You can turn on expiration validation (off by default), but beware most tokens
+        live just a few minutes.
         :param token:
+        :param verify_exp:
         :return tuple ValdateCode, Exception:
         """
         r, e = self.fetch_pub_keys()
@@ -103,8 +112,20 @@ class JWTValidator:
 
         key = self.pubKeys[kid]
 
+        options = dict()
+        if verify_exp:
+            options["verify_exp"] = True
+        else:
+            options["verify_exp"] = False
+
+        if self.aud is None:
+            options["verify_aud"] = False
+        else:
+            options["verify_aud"] = True
+
+        # options https://pyjwt.readthedocs.io/en/latest/api.html
         try:
-            jwt.decode(token, key=key, algorithms=[alg], audience=self.aud)
+            jwt.decode(token, key=key, algorithms=[alg], options=options, audience=self.aud)
         except Exception as e:
             return ValidateCode.INVALID, e
 
