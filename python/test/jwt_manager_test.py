@@ -24,7 +24,7 @@
 # Author Komal Thareja (kthare10@renci.org)
 import unittest
 
-from python.fss_utils.jwt_manager import JWTManager, ValidateCode
+from fss_utils.jwt_manager import JWTManager, ValidateCode
 
 
 class JWTManagerTest(unittest.TestCase):

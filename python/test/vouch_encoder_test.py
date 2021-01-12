@@ -25,8 +25,8 @@
 import unittest
 import time
 
-from python.fss_utils.jwt_manager import ValidateCode, JWTManager
-from python.fss_utils.vouch_encoder import VouchEncoder, CustomClaimsType, PTokens
+from fss_utils.jwt_manager import ValidateCode, JWTManager
+from fss_utils.vouch_encoder import VouchEncoder, CustomClaimsType, PTokens
 
 
 class VouchEncoderTest(unittest.TestCase):
