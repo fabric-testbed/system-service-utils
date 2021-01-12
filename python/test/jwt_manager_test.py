@@ -41,7 +41,7 @@ class JWTManagerTest(unittest.TestCase):
     def test_encode_and_sign_with_valid_key_no_passphrase(self):
         claims = {"foo": "bar"}
         code, token = JWTManager.encode_and_sign_with_private_key(validity=90, claims=claims,
-                                                                  private_key_file_name="./data/privkey.pem",
+                                                                  private_key_file_name="test/data/privkey.pem",
                                                                   kid="abcd-kid", algorithm="RS256")
         self.assertEqual(code, ValidateCode.VALID)
         self.assertIsNotNone(token)
@@ -62,7 +62,7 @@ class JWTManagerTest(unittest.TestCase):
         self.assertFalse(isinstance(exception, str))
 
     def test_encode_jwk_with_valid_pem(self):
-        code, token = JWTManager.encode_jwk(key_file_name="./data/pubkey.pem", kid="kid", alg="RS256")
+        code, token = JWTManager.encode_jwk(key_file_name="test/data/pubkey.pem", kid="kid", alg="RS256")
         self.assertEqual(code, ValidateCode.VALID)
         self.assertIsNotNone(token)
         self.assertFalse(isinstance(token, Exception))
