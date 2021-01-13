@@ -3,7 +3,7 @@ import jwt
 import json
 import datetime
 
-from python.fss_utils.jwt_manager import ValidateCode
+from .jwt_manager import ValidateCode
 
 
 class JWTValidator:
