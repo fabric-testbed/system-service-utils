@@ -4,7 +4,7 @@ import time
 import datetime
 
 from fss_utils.jwt_validate import JWTValidator
-from fss_utils.jwt_validate import ValidateCode
+from fss_utils.jwt_manager import ValidateCode
 
 
 class JWTTester(unittest.TestCase):
@@ -14,7 +14,7 @@ class JWTTester(unittest.TestCase):
         self.right_audience = "cilogon:/client_id/73bb503829ff96ad948f41b1d8e2a2a5"
         self.wrong_audience = "cilogon:/client_id/1234567890"
         self.period = datetime.timedelta(seconds=10)
-        self.default_validator = JWTValidator(self.url, self.period)
+        self.default_validator = JWTValidator(url=self.url, refresh_period=self.period)
         self.validator = None
         self.testToken = {"email": "user@domain.net", "given_name": "Some", "family_name": "One",
                           "name": "Some One", "iss": "https://cilogon.org", "aud": "cilogon:foo",
@@ -64,7 +64,7 @@ class JWTTester(unittest.TestCase):
 
     def testFetchKeys(self):
         """ test fetching keys from a real endpoint (succeed) """
-        self.validator = JWTValidator(self.url, self.period)
+        self.validator = JWTValidator(url=self.url, refresh_period=self.period)
         vc, e = self.validator.fetch_pub_keys()
         assert vc is None and e is None
 
@@ -78,41 +78,43 @@ class JWTTester(unittest.TestCase):
     def testNoExpiredNoAudience(self):
         """ validate signature, ignore expiration and audience (succeed) """
         # audience is set to None in this case
-        vc, e = self.default_validator.validate_jwt(self.testToken2)
-        assert vc is ValidateCode.VALID and e is None
+        vc, e = self.default_validator.validate_jwt(token=self.testToken2)
+        assert vc is ValidateCode.VALID
 
     def testNoExpiredRightAudience(self):
         """ validate signature, ignore expiration, check audience (succeed) """
-        self.validator = JWTValidator(self.url, self.period, self.right_audience)
-        vc, e = self.validator.validate_jwt(self.testToken2)
-        assert vc is ValidateCode.VALID and e is None
+        self.validator = JWTValidator(url=self.url, refresh_period=self.period,
+                                      audience=self.right_audience)
+        vc, e = self.validator.validate_jwt(token=self.testToken2)
+        assert vc is ValidateCode.VALID
 
     def testNoExpiredWrongAudience(self):
         """ validate signature, ignore expiration, check audience (fail) """
-        self.validator = JWTValidator(self.url, self.period, self.wrong_audience)
-        vc, e = self.validator.validate_jwt(self.testToken2)
+        self.validator = JWTValidator(url=self.url, refresh_period=self.period,
+                                      audience=self.wrong_audience)
+        vc, e = self.validator.validate_jwt(token=self.testToken2)
         assert vc is ValidateCode.INVALID and str(e) == "Invalid audience"
 
     def testStrictExpired(self):
         """ test for expiration (fail) """
         # audience is set to None in this case
-        vc, e = self.default_validator.validate_jwt(self.testToken2, verify_exp=True)
+        vc, e = self.default_validator.validate_jwt(token=self.testToken2, verify_exp=True)
         assert vc is ValidateCode.INVALID and str(e) == "Signature has expired"
 
     def testBadToken(self):
         """ test an unparsable token (fail) """
-        vc, e = self.default_validator.validate_jwt(self.testToken3)
+        vc, e = self.default_validator.validate_jwt(token=self.testToken3)
         assert vc is ValidateCode.UNPARSABLE_TOKEN
 
     def testKeyRefetch(self):
         """ test key refetch from JWK endpoint """
-        vc, e = self.default_validator.validate_jwt(self.testToken2)
-        assert vc is ValidateCode.VALID and e is None
+        vc, e = self.default_validator.validate_jwt(token=self.testToken2)
+        assert vc is ValidateCode.VALID
         print("Sleeping for 5 seconds")
         time.sleep(5)
-        vc, e = self.default_validator.validate_jwt(self.testToken2)
-        assert vc is ValidateCode.VALID and e is None
+        vc, e = self.default_validator.validate_jwt(token=self.testToken2)
+        assert vc is ValidateCode.VALID
         print("Sleeping for 6 seconds")
         time.sleep(6)
-        vc, e = self.default_validator.validate_jwt(self.testToken2)
-        assert vc is ValidateCode.VALID and e is None
+        vc, e = self.default_validator.validate_jwt(token=self.testToken2)
+        assert vc is ValidateCode.VALID

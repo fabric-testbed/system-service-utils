@@ -23,3 +23,10 @@ $  python
 >>> validator = JWTValidator(cert_end_point, audience, datetime.timedelta(minutes=5))
 >>> validator.validate_jwt(token)
 ```
+
+# Testing
+
+Use `pytest`:
+```bash
+$ pytest test/
+```

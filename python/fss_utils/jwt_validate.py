@@ -10,18 +10,18 @@ class JWTValidator:
     """This class caches keys retrieved from a specified endpoint
     and uses them to validate provided JWTs"""
 
-    def __init__(self, url, refreshPeriod, audience=None):
+    def __init__(self, *, url, refresh_period, audience=None):
         """ Initialize a validator with an endpoint URL presenting JWKs,
         a refresh period for keys expressed as datetime.timedelta and
         audience (i.e. CI Logon client id cilogon:/client_id/1234567890).
         :param url:
-        :param refreshPeriod:
+        :param refresh_period:
         :param audience:
         """
         self.url = url
         self.aud = audience
-        assert refreshPeriod is None or isinstance(refreshPeriod, datetime.timedelta)
-        self.cachePeriod = refreshPeriod
+        assert refresh_period is None or isinstance(refresh_period, datetime.timedelta)
+        self.cachePeriod = refresh_period
         self.pubKeys = None
         self.keysFetched = None
 
@@ -52,7 +52,7 @@ class JWTValidator:
         except Exception as e:
             return ValidateCode.UNABLE_TO_DECODE_KEYS, e
 
-    def validate_jwt(self, token, verify_exp=False):
+    def validate_jwt(self, *, token, verify_exp=False):
         """
         Validate a token using a JWKs object retrieved from an endpoint.
         Returns a tuple ValidateCode code, exception object if it occurred (or None).
@@ -99,8 +99,8 @@ class JWTValidator:
 
         # options https://pyjwt.readthedocs.io/en/latest/api.html
         try:
-            jwt.decode(token, key=key, algorithms=[alg], options=options, audience=self.aud)
+            decoded_token = jwt.decode(token, key=key, algorithms=[alg], options=options, audience=self.aud)
         except Exception as e:
             return ValidateCode.INVALID, e
 
-        return ValidateCode.VALID, None
+        return ValidateCode.VALID, decoded_token
