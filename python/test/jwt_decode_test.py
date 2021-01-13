@@ -3,7 +3,8 @@ import jwt
 import time
 import datetime
 
-from fss_utils.jwt_validate import JWTValidator, ValidateCode
+from fss_utils.jwt_validate import JWTValidator
+from fss_utils.jwt_validate import ValidateCode
 
 
 class JWTTester(unittest.TestCase):

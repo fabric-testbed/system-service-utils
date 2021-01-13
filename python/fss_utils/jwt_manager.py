@@ -38,24 +38,32 @@ from cryptography.hazmat.primitives import serialization
 @enum.unique
 class ValidateCode(enum.Enum):
     VALID = 1
-    UNSPECIFIED_ALG = 2
-    INVALID = 3
-    UNABLE_TO_LOAD_KEYS = 4
-    UNPARSABLE_TOKEN = 5
-    UNABLE_TO_COMPRESS = 6
-    UNABLE_TO_DECOMPRESS = 7
-    UNSPECIFIED_ID_TOKEN = 8
+    UNSPECIFIED_KEY = 2
+    UNSPECIFIED_ALG = 3
+    UNKNOWN_KEY = 4
+    INVALID = 5
+    UNABLE_TO_FETCH_KEYS = 6
+    UNPARSABLE_TOKEN = 7
+    UNABLE_TO_DECODE_KEYS = 8
+    UNABLE_TO_LOAD_KEYS = 9
+    UNABLE_TO_COMPRESS = 10
+    UNABLE_TO_DECOMPRESS = 11
+    UNSPECIFIED_ID_TOKEN = 12
 
     def interpret(self, exception=None):
         interpretations = {
             1: "Token is valid",
-            2: "Token does not specify algorithm",
-            3: "Token signature is invalid",
-            4: "Unable to load key from file",
-            5: "Unable to parse token",
-            6: "Unable to compress the encoded token",
-            7: "Unable to decompress the encoded token",
-            8: "Identity Token or Identity Claims not specified"
+            2: "Token does not specify key ID",
+            3: "Token does not specify algorithm",
+            4: "Unable to find public key at JWK endpoint",
+            5: "Token signature is invalid",
+            6: "Unable to fetch keys from the endpoint",
+            7: "Unable to parse token",
+            8: "Unable to decode public keys",
+            9: "Unable to load key from file",
+            10: "Unable to compress the encoded token",
+            11: "Unable to decompress the encoded token",
+            12: "Identity Token or Identity Claims not specified"
           }
         if exception is None:
             return interpretations[self.value]
@@ -66,7 +74,8 @@ class ValidateCode(enum.Enum):
 class JWTManager:
     @staticmethod
     def encode_and_sign_with_private_key(*, validity: int, claims: dict, private_key_file_name: str, kid: str,
-                                         algorithm: str, pass_phrase: str = None) -> Tuple[ValidateCode, Union[Exception, str]]:
+                                         algorithm: str,
+                                         pass_phrase: str = None) -> Tuple[ValidateCode, Union[Exception, str]]:
         """
         sign and base64 encode the token
         :param validity validity in seconds

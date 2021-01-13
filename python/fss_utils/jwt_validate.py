@@ -1,35 +1,9 @@
 import requests
 import jwt
 import json
-import enum
 import datetime
 
-@enum.unique
-class ValidateCode(enum.Enum):
-    VALID = 1
-    UNSPECIFIED_KEY = 2
-    UNSPECIFIED_ALG = 3
-    UNKNOWN_KEY = 4
-    INVALID = 5
-    UNABLE_TO_FETCH_KEYS = 6
-    UNPARSABLE_TOKEN = 7
-    UNABLE_TO_DECODE_KEYS = 8
-
-    def interpret(self, exception=None):
-        interpretations = {
-            1: "Token is valid",
-            2: "Token does not specify key ID",
-            3: "Token does not specify algorithm",
-            4: "Unable to find public key at JWK endpoint",
-            5: "Token signature is invalid",
-            6: "Unable to fetch keys from the endpoint",
-            7: "Unable to parse token",
-            8: "Unable to decode public keys"
-          }
-        if exception is None:
-            return interpretations[self.value]
-        else:
-            return str(exception) + ". " + interpretations[self.value]
+from python.fss_utils.jwt_manager import ValidateCode
 
 
 class JWTValidator:
