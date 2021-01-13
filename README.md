@@ -1,6 +1,6 @@
 [![Requirements Status](https://requires.io/github/fabric-testbed/system-service-utils/requirements.svg?branch=main)](https://requires.io/github/fabric-testbed/system-service-utils/requirements/?branch=main)
 
-![PyPI](https://img.shields.io/pypi/v/fabric-fss-utils?style=plastic)
+[![PyPI](https://img.shields.io/pypi/v/fabric-fss-utils?style=plastic)](https://pypi.org/project/fabric-fss-utils/)
 
 # Overview
 
