@@ -1,3 +1,5 @@
+[![PyPI](https://img.shields.io/pypi/v/fabric-fss-utils?style=plastic)](https://pypi.org/project/fabric-fss-utils/)
+
 # Overview
 
 Python library for supporting FABRIC System Services. Includes multiple modules:
