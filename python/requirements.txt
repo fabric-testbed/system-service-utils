@@ -19,7 +19,7 @@ requests-toolbelt==0.9.1
 rfc3986==1.4.0
 six==1.15.0
 tqdm==4.54.1
-urllib3==1.26.2
+urllib3==1.26.3
 webencodings==0.5.1
 zipp==3.4.0
 authlib==0.15.2
