@@ -5,7 +5,7 @@ chardet==4.0.0
 colorama==0.4.4
 cryptography==3.3.2
 idna==2.10
-importlib-metadata==3.1.1
+importlib-metadata==3.7.3
 keyring==21.5.0
 packaging==20.8
 pkginfo==1.6.1
