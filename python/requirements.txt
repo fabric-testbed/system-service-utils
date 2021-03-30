@@ -11,7 +11,7 @@ packaging==20.8
 pkginfo==1.6.1
 pycodestyle==2.6.0
 pycparser==2.20
-Pygments==2.7.3
+Pygments==2.7.4
 PyJWT==1.7.1
 pyparsing==2.4.7
 requests==2.25.1
