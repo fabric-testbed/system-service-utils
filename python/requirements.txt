@@ -1,3 +1,4 @@
+authlib==0.15.2
 bleach==3.3.0
 certifi==2020.12.5
 cffi==1.14.4
@@ -5,13 +6,13 @@ chardet==4.0.0
 colorama==0.4.4
 cryptography==3.3.2
 idna==2.10
-importlib-metadata==3.1.1
+importlib-metadata==3.7.3
 keyring==21.5.0
 packaging==20.8
 pkginfo==1.6.1
 pycodestyle==2.6.0
 pycparser==2.20
-Pygments==2.7.3
+Pygments==2.7.4
 PyJWT==1.7.1
 pyparsing==2.4.7
 requests==2.25.1
@@ -22,4 +23,3 @@ tqdm==4.54.1
 urllib3==1.26.3
 webencodings==0.5.1
 zipp==3.4.0
-authlib==0.15.2
