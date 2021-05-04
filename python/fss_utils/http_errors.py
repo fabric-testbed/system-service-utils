@@ -35,10 +35,11 @@ class HTTPErrorTuple:
     ("Internal Server Error", 500, { "X-Error": "Horrible internal error details"})
     """
 
-    def __init__(self, status: HTTPStatus, xerror: str):
+    def __init__(self, status, xerror: str):
         self.code = status.real
         self.phrase = status.phrase
         self.xerror = xerror
 
     def astuple(self):
         return self.phrase, self.code, {"X-Error": self.xerror}
+

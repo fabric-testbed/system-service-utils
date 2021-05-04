@@ -8,7 +8,7 @@ with open("requirements.txt", "r") as fh:
 
 setuptools.setup(
   name="fabric_fss_utils",
-  version="0.11",
+  version="0.12",
   author="Ilya Baldin",
   description="FABRIC System Services Utilities library",
   url="https://github.com/fabric-testbed/system-service-utils",
