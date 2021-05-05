@@ -24,22 +24,55 @@
 # Author Ilya Baldin (ibaldin@renci.org)
 
 from http import HTTPStatus
+from flask import Response, request
 
 
 class HTTPErrorTuple:
     """
     Small helper class to return HTTP error in the format UIS, PR like.
     Use it as follows:
-    return HTTPErrorTuple(HTTPStatus.INTERNAL_SERVER_ERROR, "Horrible internal error details").astuple()
-    You will get a tuple
-    ("Internal Server Error", 500, { "X-Error": "Horrible internal error details"})
+    return HTTPErrorTuple(status=HTTPStatus.INTERNAL_SERVER_ERROR,
+                          body="Non standard error return",
+                          xerror="Horrible internal error details").astuple()
+    You will get a flask.Response
+    ("Non standard error return", 500, { "X-Error": "Horrible internal error details"})
+    If you don't want CORS headers included, add cors=False as a parameter to constructor.
     """
 
-    def __init__(self, status, xerror: str):
+    def __init__(self, *, request, status, body: str = None, xerror: str = None, cors: bool = True):
+        self.request = request
+        self.cors = cors
+        self.body = body if body is not None else status.phrase
         self.code = status.real
-        self.phrase = status.phrase
         self.xerror = xerror
 
-    def astuple(self):
-        return self.phrase, self.code, {"X-Error": self.xerror}
+    def response(self) -> Response:
+        r = Response()
+        r.status_code = self.code
+        r.data = self.body
+        if self.cors:
+            r.headers['Access-Control-Allow-Origin'] = self.request.headers.get('Origin', '*')
+            r.headers['Access-Control-Allow-Credentials'] = 'true'
+            r.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+            r.headers['Access-Control-Allow-Headers'] = 'DNT, User-Agent, X-Requested-With, ' \
+                                                        'If-Modified-Since, Cache-Control, ' \
+                                                        'Content-Type, Range'
+            r.headers['Access-Control-Expose-Headers'] = 'Content-Length, Content-Range, X-Error'
 
+        if self.xerror:
+            r.headers['X-Error'] = self.xerror
+
+        return r
+
+
+def cors_response(status, body: str = None, xerror: str = None, cors: bool = True) -> Response:
+    """
+    Shortcut method to provide a cors response
+    :param status:
+    :param body:
+    :param xerror:
+    :param cors:
+    :return:
+    """
+    r = HTTPErrorTuple(request=request, status=status, body=body, xerror=xerror, cors=cors)
+    return r.response()
