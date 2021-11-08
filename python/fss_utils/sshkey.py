@@ -50,7 +50,7 @@ class FABRICSSHKey:
         assert public_key is not None
         # this also validates that this is either DSA or ECDSA key
         self._length = FABRICSSHKey.get_key_length(public_key, validate=True)
-        self._name, self._public_key, self._label = public_key.split(" ")
+        self._name, self._public_key, self._comment = public_key.split(" ")
         # can only be generated
         self._private_key = None
 
@@ -63,8 +63,8 @@ class FABRICSSHKey:
         return self._public_key
 
     @property
-    def label(self):
-        return self._label
+    def comment(self):
+        return self._comment
 
     @property
     def length(self):
@@ -107,7 +107,7 @@ class FABRICSSHKey:
         return self.private_key, self.as_public_key_string()
 
     def as_public_key_string(self):
-        return " ".join([self._name, self._public_key, self._label])
+        return " ".join([self._name, self._public_key, self._comment])
 
     def get_fingerprint(self) -> str:
         """
@@ -135,7 +135,7 @@ class FABRICSSHKey:
         return ck.key_size
 
     def __str__(self):
-        return f"Private:\n{self.private_key}\nPublic:\n{' '.join([self._name, self._public_key, self._label])}"
+        return f"Private:\n{self.private_key}\nPublic:\n{' '.join([self._name, self._public_key, self._comment])}"
 
     def __repr__(self):
         return str(self)

@@ -25,6 +25,7 @@ class FABRICSSHKeyTest(unittest.TestCase):
         rsa1 = FABRICSSHKey(pub)
         self.assertEqual(rsa1.length, rsa.length)
         self.assertEqual(rsa1.get_fingerprint(), rsa.get_fingerprint())
+        self.assertEqual(rsa1.comment, "rsa_key@localhost")
 
         with open('rsa_key.priv', 'w') as f:
             f.write(priv)
@@ -47,6 +48,7 @@ class FABRICSSHKeyTest(unittest.TestCase):
         ecdsa1 = FABRICSSHKey(pub)
         self.assertEqual(ecdsa1.length, ecdsa.length)
         self.assertEqual(ecdsa1.get_fingerprint(), ecdsa.get_fingerprint())
+        self.assertEqual(ecdsa1.comment, "ecdsa_key@localhost")
 
         with open('ecdsa_key.priv', 'w') as f:
             f.write(priv)
