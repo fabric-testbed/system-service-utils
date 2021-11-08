@@ -1,4 +1,5 @@
 import setuptools
+from fss_utils import __VERSION__
 
 with open("README.md", "r") as fh:
   long_description = fh.read()
@@ -8,7 +9,7 @@ with open("requirements.txt", "r") as fh:
 
 setuptools.setup(
   name="fabric_fss_utils",
-  version="0.15",
+  version=__VERSION__,
   author="Ilya Baldin",
   description="FABRIC System Services Utilities library",
   url="https://github.com/fabric-testbed/system-service-utils",
