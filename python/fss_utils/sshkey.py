@@ -38,19 +38,29 @@ KEY_ALGORITHMS = {
     "ecdsa": (ec.generate_private_key(ec.SECP256R1()), 256)
 }
 
-LABEL_REGEX = "^[a-zA-Z0-9@-_()]{0,64}$"
+# randomly make this at least 5 characters long
+COMMENT_REGEX = "^[a-zA-Z0-9@-_()]{5,64}$"
 
 
 class FABRICSSHKey:
 
-    def __init__(self, public_key: str):
+    def __init__(self, public_key: str, alt_comment: str = None):
         """
-        Load the public portion of the key
+        Load the public portion of the key, substitute key comment
+        if provided.
+        Comment is the last part of standard OpenSSH public key
+        usually user@host.something.or.other
         """
         assert public_key is not None
         # this also validates that this is either DSA or ECDSA key
         self._length = FABRICSSHKey.get_key_length(public_key, validate=True)
-        self._name, self._public_key, self._label = public_key.split(" ")
+        self._name, self._public_key, self._comment = public_key.split(" ")
+        if alt_comment is not None:
+            self._comment = alt_comment.strip()
+            matches = re.match(COMMENT_REGEX, self._comment)
+            if matches is None:
+                raise FABRICSSHKeyException(
+                    f'Comment {self._comment} does not match expected regular expression {COMMENT_REGEX}')
         # can only be generated
         self._private_key = None
 
@@ -63,8 +73,8 @@ class FABRICSSHKey:
         return self._public_key
 
     @property
-    def label(self):
-        return self._label
+    def comment(self):
+        return self._comment
 
     @property
     def length(self):
@@ -75,11 +85,11 @@ class FABRICSSHKey:
         return self._private_key
 
     @classmethod
-    def generate(cls, label: str, algorithm: str):
-        assert label is not None
-        matches = re.match(LABEL_REGEX, label)
+    def generate(cls, comment: str, algorithm: str):
+        assert comment is not None
+        matches = re.match(COMMENT_REGEX, comment)
         if matches is None:
-            raise FABRICSSHKeyException(f'Label {label} does not match expected regular expression {LABEL_REGEX}')
+            raise FABRICSSHKeyException(f'Comment {comment} does not match expected regular expression {COMMENT_REGEX}')
         # generate a key
         if algorithm not in KEY_ALGORITHMS.keys():
             raise FABRICSSHKeyException(f'Key Algorithm configured as {algorithm} is not supported')
@@ -93,21 +103,23 @@ class FABRICSSHKey:
         public_key_with_name = key.public_key().public_bytes(encoding=serialization.Encoding.OpenSSH,
                                                              format=serialization.PublicFormat.OpenSSH).decode('utf-8')
 
-        # just append the label
+        # just append the comment
         ret = FABRICSSHKey(" ".join([public_key_with_name.strip(),
-                                     label]))
+                                     comment]))
         ret._private_key = private_key
         return ret
 
     def as_keypair(self) -> Tuple[str, str]:
         """
-        Returns a typle of private, public keys formatted for SSH
+        Returns a typle of private, public keys formatted for SSH.
+        Note unless key was generated, private part (first part
+        of the tuple) will be None.
         :return:
         """
         return self.private_key, self.as_public_key_string()
 
     def as_public_key_string(self):
-        return " ".join([self._name, self._public_key, self._label])
+        return " ".join([self._name, self._public_key, self._comment])
 
     def get_fingerprint(self) -> str:
         """
@@ -131,11 +143,19 @@ class FABRICSSHKey:
             ck = serialization.load_ssh_public_key(ks.encode('utf-8'))
         except:
             raise FABRICSSHKeyException(f'Provided public key starting with {ks[0:50]} cannot be imported')
+        if isinstance(ck, ec.EllipticCurvePublicKey):
+            if ck.key_size < KEY_ALGORITHMS["ecdsa"][1]:
+                raise FABRICSSHKeyException(f'Provided ECDSA public key length {ck.key_size} is not satisfactory')
+        elif isinstance(ck, rsa.RSAPublicKey):
+            if ck.key_size < KEY_ALGORITHMS["rsa"][1]:
+                raise FABRICSSHKeyException(f'Provided RSA public key length {ck.key_size} is not satisfactory')
+        else:
+            raise FABRICSSHKeyException(f'Provided public key starting with {ks[0:50]} is not of supported type')
 
         return ck.key_size
 
     def __str__(self):
-        return f"Private:\n{self.private_key}\nPublic:\n{' '.join([self._name, self._public_key, self._label])}"
+        return f"Private:\n{self.private_key}\nPublic:\n{' '.join([self._name, self._public_key, self._comment])}"
 
     def __repr__(self):
         return str(self)
