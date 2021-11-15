@@ -154,6 +154,24 @@ class FABRICSSHKey:
 
         return ck.key_size
 
+    @staticmethod
+    def bastion_login(oidc_claim_sub: str, email: str) -> str:
+        """
+        Build a bastion login from oidc claim sub and email
+        :param oidc_claim_sub:
+        :param email:
+        :return:
+        """
+        if oidc_claim_sub is None or email is None:
+            raise FABRICSSHKeyException('Cannot build bastion login - one of oidc_claim_sub or email is None')
+        oidcsub_id = str(oidc_claim_sub).rsplit('/', 1)[1]
+        prefix = email.split('@', 1)[0]
+        prefix = prefix.replace('.', '_').replace('-', '_').lower()
+        suffix = oidcsub_id.zfill(10)
+        bastion_login = prefix[0:20] + '_' + suffix
+        return bastion_login
+
+
     def __str__(self):
         return f"Private:\n{self.private_key}\nPublic:\n{' '.join([self._name, self._public_key, self._comment])}"
 
