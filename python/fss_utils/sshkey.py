@@ -39,7 +39,7 @@ KEY_ALGORITHMS = {
 }
 
 # randomly make this at least 5 characters long
-COMMENT_REGEX = "^[a-zA-Z0-9@-_()]{5,64}$"
+COMMENT_REGEX = r"^[\w\-\._@()]{5,100}$"
 
 
 class FABRICSSHKey:
