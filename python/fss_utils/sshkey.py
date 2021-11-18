@@ -34,8 +34,8 @@ from cryptography.hazmat.primitives import serialization
 
 # this is how we set what key type is produced by default and default key length
 KEY_ALGORITHMS = {
-    "rsa": (rsa.generate_private_key(public_exponent=65537, key_size=3072), 3072),
-    "ecdsa": (ec.generate_private_key(ec.SECP256R1()), 256)
+    "rsa": (rsa.generate_private_key, {"public_exponent": 65537, "key_size": 3072}, 3072),
+    "ecdsa": (ec.generate_private_key, {"curve": ec.SECP256R1()}, 256)
 }
 
 # randomly make this at least 5 characters long
@@ -94,7 +94,7 @@ class FABRICSSHKey:
         if algorithm not in KEY_ALGORITHMS.keys():
             raise FABRICSSHKeyException(f'Key Algorithm configured as {algorithm} is not supported')
         # this calls to generate
-        key = KEY_ALGORITHMS[algorithm][0]
+        key = KEY_ALGORITHMS[algorithm][0](**KEY_ALGORITHMS[algorithm][1])
 
         # get the private key in PEM format
         private_key = key.private_bytes(encoding=serialization.Encoding.PEM,
@@ -144,10 +144,10 @@ class FABRICSSHKey:
         except:
             raise FABRICSSHKeyException(f'Provided public key starting with {ks[0:50]} cannot be imported')
         if isinstance(ck, ec.EllipticCurvePublicKey):
-            if ck.key_size < KEY_ALGORITHMS["ecdsa"][1]:
+            if ck.key_size < KEY_ALGORITHMS["ecdsa"][2]:
                 raise FABRICSSHKeyException(f'Provided ECDSA public key length {ck.key_size} is not satisfactory')
         elif isinstance(ck, rsa.RSAPublicKey):
-            if ck.key_size < KEY_ALGORITHMS["rsa"][1]:
+            if ck.key_size < KEY_ALGORITHMS["rsa"][2]:
                 raise FABRICSSHKeyException(f'Provided RSA public key length {ck.key_size} is not satisfactory')
         else:
             raise FABRICSSHKeyException(f'Provided public key starting with {ks[0:50]} is not of supported type')
