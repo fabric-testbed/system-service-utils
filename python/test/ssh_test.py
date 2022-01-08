@@ -112,6 +112,7 @@ class FABRICSSHKeyTest(unittest.TestCase):
         self.assertEqual(rsak.length, 3072)
         # compared to ssh-keygen -lf <file> -E md5
         self.assertEqual(rsak.get_fingerprint(), "MD5:14:68:04:d5:8a:f7:03:1b:a5:14:26:62:77:d8:15:4e")
+        self.assertEqual(rsak.get_fingerprint(kind='sha256'), "SHA256:Yz9kfDC5d/1C6nafo/hFDZOCW9FydbZGEo9B/g2V9Zk")
         self.assertEqual(rsak.comment, "user@laptop.domain")
 
     def testValidRSA1(self):
@@ -119,14 +120,17 @@ class FABRICSSHKeyTest(unittest.TestCase):
         self.assertEqual(rsak.length, 3072)
         # compared to ssh-keygen -lf <file> -E md5
         self.assertEqual(rsak.get_fingerprint(), "MD5:14:68:04:d5:8a:f7:03:1b:a5:14:26:62:77:d8:15:4e")
+        self.assertEqual(rsak.get_fingerprint(kind='sha256'), "SHA256:Yz9kfDC5d/1C6nafo/hFDZOCW9FydbZGEo9B/g2V9Zk")
         self.assertEqual(rsak.comment, "altcomment")
 
     def testValidECDSA(self):
         ecdsak = FABRICSSHKey(ECDSA_PUB_256)
         self.assertEqual(ecdsak.length, 256)
         self.assertEqual(ecdsak.get_fingerprint(), "MD5:ed:6f:f4:0d:09:5b:80:d9:f4:16:ab:71:d1:b5:76:a3")
+        self.assertEqual(ecdsak.get_fingerprint(kind='sha256'), "SHA256:YUoqrMjtU0kOtvvCe3jumvaf2wmEV+N8LjGT16fRu3I")
 
     def testValidECDSA1(self):
         ecdsak = FABRICSSHKey(ECDSA_PUB_384)
         self.assertEqual(ecdsak.length, 384)
         self.assertEqual(ecdsak.get_fingerprint(), "MD5:05:89:60:01:c4:59:76:83:58:ad:62:1b:0e:33:ab:81")
+        self.assertEqual(ecdsak.get_fingerprint(kind='sha256'), "SHA256:6EwJWq36+j6KRNIMGoO48YUhIC3CRAVfGNeBFXn7XS0")

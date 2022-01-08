@@ -121,17 +121,28 @@ class FABRICSSHKey:
     def as_public_key_string(self):
         return " ".join([self._name, self._public_key, self._comment])
 
-    def get_fingerprint(self) -> str:
+    def get_fingerprint(self, kind: str = 'md5') -> str:
         """
-        Generate MD5 fingerprint. Use 'ssh-keygen -lf <filename> -E md5' to get the same output
+        Generate MD5 or SHA256 fingerprint. Use 'ssh-keygen -lf <filename> -E [md5|sha256]' to get the same output
         """
         # for some reason Paramiko fingerprint() does not match the output of sshkeygen -lf <key> -E md5
         # so we are rolling our own based on
         # https://stackoverflow.com/questions/64733471/how-to-calculate-a-fingerprint-from-an-rsa-public-key
-        rawdata = base64.b64decode(self._public_key)
-        hexdigest = hashlib.md5(rawdata).hexdigest()
-        keychunks = [hexdigest[i:i+2] for i in range(0, len(hexdigest), 2)]
-        return 'MD5:' + ":".join(keychunks)
+        # and
+        # https://gist.github.com/StevenMaude/f054064ede8c9e781ed8
+        if kind == 'md5':
+            rawdata = base64.b64decode(self._public_key)
+            hexdigest = hashlib.md5(rawdata).hexdigest()
+            keychunks = [hexdigest[i:i+2] for i in range(0, len(hexdigest), 2)]
+            return 'MD5:' + ":".join(keychunks)
+        elif kind == 'sha256':
+            rawdata = base64.b64decode(self._public_key)
+            digest = hashlib.sha256(rawdata).digest()
+            encoded = base64.b64encode(digest).rstrip(b'=')
+            return 'SHA256:' + encoded.decode('utf-8')
+        else:
+            raise FABRICSSHKeyException(f'Unknown fingerprint digest algorithm {kind}, '
+                                        f'only md5 and sha256 are supported')
 
     @staticmethod
     def get_key_length(ks: str, validate=False) -> int:
