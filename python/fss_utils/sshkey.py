@@ -182,6 +182,8 @@ class FABRICSSHKey:
         bastion_login = prefix[0:20] + '_' + suffix
         return bastion_login
 
+    def __eq__(self, other):
+        return self.get_fingerprint(kind='sha256') == other.get_fingerprint(kind='sha256')
 
     def __str__(self):
         return f"Private:\n{self.private_key}\nPublic:\n{' '.join([self._name, self._public_key, self._comment])}"
