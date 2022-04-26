@@ -22,7 +22,7 @@ setuptools.setup(
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
   ],
-  python_requires=">=3.7",
+  python_requires=">=3.9",
   install_requires=requirements,
   setup_requires=requirements,
 )
