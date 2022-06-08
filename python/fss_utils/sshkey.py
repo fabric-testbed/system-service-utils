@@ -54,7 +54,12 @@ class FABRICSSHKey:
         assert public_key is not None
         # this also validates that this is either DSA or ECDSA key
         self._length = FABRICSSHKey.get_key_length(public_key, validate=True)
-        self._name, self._public_key, self._comment = public_key.split(" ")
+        try:
+            self._name, self._public_key, self._comment = public_key.split(" ")
+        except ValueError:
+            self._name, self._public_key = public_key.split(" ")
+            self._comment = "no-comment"
+
         if alt_comment is not None:
             self._comment = alt_comment.strip()
             matches = re.match(COMMENT_REGEX, self._comment)
