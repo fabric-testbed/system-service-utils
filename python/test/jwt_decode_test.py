@@ -93,7 +93,7 @@ class JWTTester(unittest.TestCase):
         self.validator = JWTValidator(url=self.url, refresh_period=self.period,
                                       audience=self.wrong_audience)
         vc, e = self.validator.validate_jwt(token=self.testToken2)
-        assert vc is ValidateCode.INVALID and str(e) == "Invalid audience"
+        assert vc is ValidateCode.INVALID and str(e) == "Audience doesn't match"
 
     def testStrictExpired(self):
         """ test for expiration (fail) """

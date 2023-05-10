@@ -30,7 +30,8 @@ from datetime import timedelta, datetime
 from typing import Tuple, Union
 
 import jwt
-from authlib.jose import jwk
+#from authlib.jose import jwk
+from authlib.jose.rfc7517 import JsonWebKey
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
@@ -106,7 +107,7 @@ class JWTManager:
         claims['exp'] = int((datetime.now() + timedelta(seconds=int(validity))).timestamp())
 
         try:
-            encoded_token = str(jwt.encode(claims, private_key, algorithm=algorithm, headers={'kid': kid}), 'utf-8')
+            encoded_token = jwt.encode(claims, private_key, algorithm=algorithm, headers={'kid': kid})
             return ValidateCode.VALID, encoded_token
         except Exception as e:
             return ValidateCode.INVALID, e
@@ -130,7 +131,9 @@ class JWTManager:
             return ValidateCode.UNABLE_TO_LOAD_KEYS, e
 
         try:
-            result = jwk.dumps(pem_data, kty='RSA')
+            # deprecated
+            #result = authlib.jose.jwk.dumps(pem_data, kty='RSA')
+            result = dict(JsonWebKey.import_key(pem_data, options={'kty': 'RSA'}))
             result["kid"] = kid
             result["alg"] = alg
             result["use"] = "sig"
@@ -156,15 +159,17 @@ class JWTManager:
 
         encoded_cookie = None
         try:
+            # produces a string
             encoded_cookie = jwt.encode(claims, secret, algorithm=algorithm)
         except Exception as e:
             return ValidateCode.INVALID, e
 
         try:
             if compression:
-                compressed_cookie = gzip.compress(encoded_cookie)
+                compressed_cookie = gzip.compress(bytes(encoded_cookie, 'utf-8'))
                 encoded_cookie = base64.urlsafe_b64encode(compressed_cookie)
-            encoded_cookie = str(encoded_cookie, 'utf-8')
+                # back to string
+                encoded_cookie = str(encoded_cookie, 'utf-8')
         except Exception as e:
             return ValidateCode.UNABLE_TO_COMPRESS, e
 
@@ -201,7 +206,7 @@ class JWTManager:
             return ValidateCode.UNSPECIFIED_ALG, None
 
         try:
-            decoded_token = jwt.decode(cookie, secret, algorithms=[algorithm], verify=verify)
+            decoded_token = jwt.decode(cookie, secret, algorithms=[algorithm], options={'verify_signature': verify})
             return ValidateCode.VALID, decoded_token
         except Exception as e:
             traceback.print_exc()
