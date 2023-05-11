@@ -73,7 +73,7 @@ class JWTManagerTest(unittest.TestCase):
         code, token = JWTManager.encode_and_compress(claims=claims, secret="super-secret", validity=500)
         self.assertEqual(code, ValidateCode.VALID)
 
-        code, decoded_token = JWTManager.decode(cookie=token, verify=False, compression=True)
+        code, decoded_token = JWTManager.decode(cookie=token, secret="super-secret", verify=True, compression=True)
 
         self.assertEqual(code, ValidateCode.VALID)
         for key, value in claims.items():
@@ -85,7 +85,7 @@ class JWTManagerTest(unittest.TestCase):
                                                      compression=False)
         self.assertEqual(code, ValidateCode.VALID)
 
-        code, decoded_token = JWTManager.decode(cookie=token, verify=False, compression=False)
+        code, decoded_token = JWTManager.decode(cookie=token, secret="super-secret", verify=True, compression=False)
 
         self.assertEqual(code, ValidateCode.VALID)
         for key, value in claims.items():

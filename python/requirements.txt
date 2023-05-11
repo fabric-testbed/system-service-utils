@@ -1,6 +1,5 @@
-cryptography==3.3.2
-PyJWT==1.7.1
+cryptography==40.0.2
+PyJWT==2.7.0
 Flask
 Authlib
 requests
-pytest
