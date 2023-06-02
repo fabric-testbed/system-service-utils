@@ -1,4 +1,4 @@
-cryptography==40.0.2
+cryptography==41.0.0
 PyJWT==2.7.0
 Flask
 Authlib
