@@ -159,14 +159,15 @@ class FABRICSSHKey:
             ck = serialization.load_ssh_public_key(ks.encode('utf-8'))
         except:
             raise FABRICSSHKeyException(f'Provided public key starting with {ks[0:50]} cannot be imported')
-        if isinstance(ck, ec.EllipticCurvePublicKey):
-            if ck.key_size < KEY_ALGORITHMS["ecdsa"][2]:
-                raise FABRICSSHKeyException(f'Provided ECDSA public key length {ck.key_size} is not satisfactory')
-        elif isinstance(ck, rsa.RSAPublicKey):
-            if ck.key_size < KEY_ALGORITHMS["rsa"][2]:
-                raise FABRICSSHKeyException(f'Provided RSA public key length {ck.key_size} is not satisfactory')
-        else:
-            raise FABRICSSHKeyException(f'Provided public key starting with {ks[0:50]} is not of supported type')
+        if validate:
+            if isinstance(ck, ec.EllipticCurvePublicKey):
+                if ck.key_size < KEY_ALGORITHMS["ecdsa"][2]:
+                    raise FABRICSSHKeyException(f'Provided ECDSA public key length {ck.key_size} is not satisfactory')
+            elif isinstance(ck, rsa.RSAPublicKey):
+                if ck.key_size < KEY_ALGORITHMS["rsa"][2]:
+                    raise FABRICSSHKeyException(f'Provided RSA public key length {ck.key_size} is not satisfactory')
+            else:
+                raise FABRICSSHKeyException(f'Provided public key starting with {ks[0:50]} is not of supported type')
 
         return ck.key_size
 
